@@ -10,6 +10,7 @@ app = FastAPI(title="Production Hours Predictor API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], # En producción, pon aquí la URL exacta de tu frontend
+    # Alli se escribe el url: http://localhost:5173
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

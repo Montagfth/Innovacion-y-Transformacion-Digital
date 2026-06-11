@@ -1,0 +1,13 @@
+services:
+
+  frontend:
+    build:
+      context: ./Impresiones-Express
+    ports:
+      - "5173:5173"
+
+  ml-api:
+    build:
+      context: ./Innovacion-ModeloML
+    ports:
+      - "8000:8000"
