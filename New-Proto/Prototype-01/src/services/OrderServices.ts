@@ -168,7 +168,7 @@ export const createOrder = async (order: Omit<OrderData, 'id'> & { priority?: nu
 
         // Creacion de parametros a insertar:
         const params = [
-            'Cliente Importado',          // client
+            (order as any).client || 'Cliente Importado',          // client
             Number(dbPrintType),          // print_type
             Number(order.quantity),       // quantity
             Number(dbPrintSize),          // print_size
@@ -190,6 +190,27 @@ export const createOrder = async (order: Omit<OrderData, 'id'> & { priority?: nu
 
     } catch (error) {
         console.error('Error al insertar el pedido.:', error);
+        throw error;
+    }
+};
+
+export const updateOrderToCompleted = async (orderId: number): Promise<void> => {
+    try {
+        const query = `
+            UPDATE orders 
+            SET status = 'Completado' 
+            WHERE order_id = ?
+        `.trim();
+
+        // Ejecutamos el UPDATE directamente en Turso usando el cliente de libsql
+        await client.execute({
+            sql: query,
+            args: [orderId]
+        });
+
+        console.log(`Pedido #${orderId} actualizado a 'Completado' en Turso con éxito.`);
+    } catch (error) {
+        console.error(`Error al actualizar el pedido #${orderId} en Turso:`, error);
         throw error;
     }
 };

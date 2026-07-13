@@ -8,7 +8,10 @@ export const Dashboard: React.FC = () => {
     // Comprobamos la ruta actual para saber qué botón marcar como activo
     const isOrdersActive = location.pathname.endsWith('/orders');
     const isNewOrderActive = location.pathname.endsWith('/new-order');
-    const isAnalyticsActive = !isOrdersActive && !isNewOrderActive;
+    const isReportsActive = location.pathname.endsWith('/reports'); // NUEVA LÍNEA
+
+    // El botón "Principal" solo se activa si no estás en ninguna de las otras secciones
+    const isAnalyticsActive = !isOrdersActive && !isNewOrderActive && !isReportsActive;
 
     const handleLogout = () => {
         navigate('/');
@@ -24,7 +27,7 @@ export const Dashboard: React.FC = () => {
                 </div>
                 <div className="nav-menu">
                     <button
-                        className={`nav-btn ${!isOrdersActive ? 'active' : ''}`}
+                        className={`nav-btn ${isAnalyticsActive ? 'active' : ''}`}
                         onClick={() => navigate('/dashboard')}
                     >
                         Principal
@@ -35,13 +38,17 @@ export const Dashboard: React.FC = () => {
                     >
                         Pedidos
                     </button>
-                    <button className={`nav-btn ${isNewOrderActive ? 'active' : ''}`}
-                        onClick={() => navigate('/dashboard/new-order')}>
+                    <button
+                        className={`nav-btn ${isNewOrderActive ? 'active' : ''}`}
+                        onClick={() => navigate('/dashboard/new-order')}
+                    >
                         Nuevo Pedido
-
                     </button>
-                    <button className="nav-btn" disabled>
-                        Reportes (In progress)
+                    <button
+                        className={`nav-btn ${isReportsActive ? 'active' : ''}`}
+                        onClick={() => navigate('/dashboard/reports')}
+                    >
+                        Reportes
                     </button>
                 </div>
                 <div className="nav-user">
@@ -53,7 +60,7 @@ export const Dashboard: React.FC = () => {
 
             {/* --- CONTENIDO PRINCIPAL --- */}
             <main className="dashboard-content">
-                {/* Aquí React Router inyectará de forma automática AnalyticsSection u OrdersSection */}
+                {/* Aquí React Router inyectará de forma automática AnalyticsSection, OrdersSection, NewOrderSection o ReportsSection */}
                 <Outlet />
             </main>
         </div>
