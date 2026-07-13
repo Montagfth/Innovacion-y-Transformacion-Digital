@@ -7,11 +7,11 @@ Sistema de gestión de pedidos de impresión y diseño industrial con predicció
 ## 🚀 Características
 
 - **Dashboard**: Monitoreo de KPIs y métricas de producción en tiempo real
-- **Gestión de Pedidos**: Ciclo de vida completo de órdenes (Pendiente -> En Producción -> Completado)
+- **Gestión de Pedidos**: Ciclo de vida de órdenes (Producción -> Completado)
 - **Predicción ML**: Motor de Machine Learning simulado para estimar tiempos de producción
 - **Reportes**: Análisis de precisión de predicciones vs tiempos reales
-- **Autenticación**: Sistema de autenticación seguro con Supabase
-- **Diseño Responsivo**: Interfaz moderna con Tailwind CSS
+- **Autenticación**: Sistema de autenticación local (Escalabilidad con exposicion de API de Autenticacion Propias)
+- **Diseño Responsivo**: Interfaz moderna, dinamica y amigable
 
 ## 🛠️ Stack Tecnológico
 
@@ -19,25 +19,22 @@ Sistema de gestión de pedidos de impresión y diseño industrial con predicció
 | :--- | :--- | :--- |
 | React | 18.3.1 | UI library |
 | TypeScript | 5.5.3 | Type safety |
-| Vite | 5.4.2 | Build tool |
 | Tailwind CSS | 3.4.1 | Estilos |
-| Supabase | 2.57.4 | Backend as a Service |
-| Chart.js | 4.5.1 | Visualización de datos |
-| Recharts | 3.8.1 | Gráficos adicionales |
+| Turso Database | 0.5.0 | Database in Cloud (AWS) |
 | Lucide React | 0.344.0 | Iconos |
 
 ## 📋 Requisitos Previos
 
 - Node.js (v18 o superior)
 - npm o yarn
-- Cuenta de Supabase
 
 ## 🔧 Instalación
 
 1. Clona el repositorio:
 ```bash
    git clone <url-del-repositorio>
-   cd Impresiones-Express
+   cd New-Proto/
+   cd Prototype-01/
    ```
 
 2. Instala las dependencias:
@@ -45,12 +42,12 @@ Sistema de gestión de pedidos de impresión y diseño industrial con predicció
    npm install
    ```
 
-3. Configura las variables de entorno de Supabase:
-   - Crea un archivo `.env` en la raíz del proyecto
-   - Agrega tus credenciales de Supabase:
+3. No es necesario la configuracion de variables de entorno de Turso, debido a que se encuentra tanto TOKEN_KEY como URL_DB en el frontend.
+   (NO ES RECOMENDABLE. Solo se uso ello como proyecto academico).
+   
 ```env
-   VITE_SUPABASE_URL=tu-url-de-supabase
-   VITE_SUPABASE_ANON_KEY=tu-anon-key-de-supabase
+   TURSO_DATABASE_URL={Aqui va la URL de la base de datos desplegada en turso}
+   TURSO_DATABASE_ANON_KEY={Aqui va la clave token de Turso}
    ```
 
 4. Ejecuta el servidor de desarrollo:
@@ -143,9 +140,8 @@ Para desplegar en producción:
 ```bash
    npm run build
    ```
-2. Despliega la carpeta `dist` en tu plataforma de hosting preferida (Vercel, Netlify, etc.)
-3. Asegúrate de configurar las variables de entorno en tu plataforma de despliegue.
+2. Asegúrate de configurar las variables de entorno en tu plataforma de despliegue.
 
 ## 📄 Licencia
 
-Universidad Tecnologica del Peru | Proyecto Academico de Curso (AFL-3.0)
+Universidad Tecnologica del Peru | Innovacion & Transformacion Digital (AFL-3.0)
