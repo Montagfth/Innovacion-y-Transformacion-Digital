@@ -11,16 +11,6 @@ export const Home: React.FC = () => {
 
     return (
 
-        // <div>
-
-        //     <h1>Sistema de Predicción</h1>
-
-        //     {/* <Link to="/prediction">
-        //         Ir a Predicción
-        //     </Link> */}
-
-        // </div>
-
         <div className="landing-page">
             {/* --- HERO SECTION --- */}
             <header className="hero-section">

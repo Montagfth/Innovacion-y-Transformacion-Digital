@@ -5,10 +5,12 @@ import { createOrder } from '../services/OrderServices';
 export const NewOrderSection: React.FC = () => {
     // Estados del Formulario de Entrada
     const [jobType, setJobType] = useState<string>('Banner');
-    const [quantity, setQuantity] = useState<number>(0);
+    const [quantity, setQuantity] = useState<number>(1);
     const [size, setSize] = useState<string>('A2');
     const [material, setMaterial] = useState<string>('Bond');
     const [isColored, setIsColored] = useState<boolean>(false);
+
+    const [clienteName, setClienteName] = useState('');
 
     // Estados de Control para la API de Predicción ML (Paralelo)
     const [loading, setLoading] = useState<boolean>(false);
@@ -27,33 +29,80 @@ export const NewOrderSection: React.FC = () => {
         setError(null);
         setResult(null);
         setUsedAlgorithm('');
-        setSaveSuccess(false); // Reseteamos éxito si el operario vuelve a calcular
+        setSaveSuccess(false);
 
+        // Los tres algoritmos disponibles en tu backend de Flask/FastAPI
         const models = ['linear_regression', 'random_forest', 'decision_tree'];
 
         const requests = models.map(modelName => {
             const url = `https://proyecto-desarrollo-jmfd.onrender.com/prediction?job_type=${jobType}&quantity=${quantity}&size=${size}&material=${material}&isColored=${isColored}&model=${modelName}`;
-            return fetch(url).then(async res => {
-                if (!res.ok) throw new Error(`Error en modelo ${modelName}`);
-                const data = await res.json();
-                return { model: modelName, data };
-            });
+
+            return fetch(url)
+                .then(async res => {
+                    if (!res.ok) {
+                        console.warn(`⚠️ El modelo ${modelName} respondió con status: ${res.status}`);
+                        return { model: modelName, data: null };
+                    }
+                    const data = await res.json();
+                    return { model: modelName, data };
+                })
+                .catch(err => {
+                    console.error(`❌ Error de conexión con el modelo ${modelName}:`, err);
+                    return { model: modelName, data: null };
+                });
         });
 
         try {
-            console.log("Evaluando algoritmos ML en paralelo de forma automatizada...");
+            console.log("🤖 Consultando y comparando algoritmos de Machine Learning...");
             const responses = await Promise.all(requests);
 
-            // Selección automática del primer resultado con clave de predicción válida
-            const optimalResponse = responses.find(r => r.data.prediction !== undefined) || responses[0];
+            // Imprime en la consola del navegador para ver EXACTAMENTE cómo responde tu API de Python
+            console.log("🔍 Respuestas crudas del servidor:", responses);
 
-            console.log(`%c ALGORITMO SELECCIONADO AUTOMÁTICAMENTE: ${optimalResponse.model}`, "color: #007bff; font-weight: bold; font-size: 12px;");
+            // Filtramos únicamente las respuestas que contengan datos válidos
+            const validResponses = responses.filter(r => {
+                if (!r.data) return false;
+                // Verificamos si la predicción viene en 'prediction', 'estimated_time' o directo en el objeto
+                const hasPrediction = r.data.prediction !== undefined || r.data.estimated_time !== undefined || typeof r.data === 'number';
+                return hasPrediction;
+            });
+
+            if (validResponses.length === 0) {
+                // Si la API falló en la comparación, mostramos lo que llegó para ayudarte a debugear
+                console.error("Ninguna respuesta cumplió el criterio de tipado. Estructura recibida:", responses);
+                throw new Error("El servidor de predicciones no retornó un formato numérico válido en este momento.");
+            }
+
+            // COMPARACIÓN DE MODELOS: Seleccionamos el modelo que arrojó la predicción más alta (escenario seguro)
+            const optimalResponse = validResponses.reduce((prev, current) => {
+                // Normalizamos el valor de la predicción según cómo lo llame tu backend
+                const prevValue = Number(prev.data.prediction ?? prev.data.estimated_time ?? prev.data);
+                const currValue = Number(current.data.prediction ?? current.data.estimated_time ?? current.data);
+                return currValue > prevValue ? current : prev;
+            });
+
+            // Captura del valor crudo:
+            const rawPrediction = optimalResponse.data.prediction ?? optimalResponse.data.estimated_time ?? optimalResponse.data;
+
+            // Correccion de casos de prediccion negativos:
+            const positivePrediction = Math.max(1, Number(rawPrediction));
+
+            // Redondeo a valor de estimacion entero:
+            const finalPredictionInteger = Math.round(positivePrediction);
+
+            console.log(`%c📊 ALGORITMO GANADOR: ${optimalResponse.model} | Tiempo estimado original: ${rawPrediction} -> Ajustado a entero: ${finalPredictionInteger} horas`, "color: #007bff; font-weight: bold; font-size: 13px;");
 
             setUsedAlgorithm(optimalResponse.model);
-            setResult(optimalResponse.data);
+
+            // Ajustamos el objeto final asegurando que guarde la predicción ya redondeada y sin negativos
+            setResult({
+                ...optimalResponse.data,
+                prediction: finalPredictionInteger
+            });
+
         } catch (err: any) {
-            console.error("Error en la predicción automatizada:", err);
-            setError('Error al procesar la predicción automática con los modelos ML.');
+            console.error("Error en el flujo de predicción comparativa:", err);
+            setError(err.message || 'Error al procesar y comparar los modelos ML en el servidor.');
         } finally {
             setLoading(false);
         }
@@ -63,14 +112,20 @@ export const NewOrderSection: React.FC = () => {
     const handleRegisterOrder = async () => {
         if (!result) return;
 
+        if (!clienteName.trim()) {
+            setError("Debe ingresar el nombre del cliente!");
+            return;
+        }
+
         setSaving(true);
         setError(null);
 
-        // Convertimos el string/number de la predicción de forma segura
-        const predictionValue = result.prediction !== undefined ? Number(result.prediction) : 0;
+        // Convertimos el string/number de la predicción de forma segura (ya viene entero del estado)
+        const predictionValue = result.prediction !== undefined ? Number(result.prediction) : 1;
 
         // Estructuramos el objeto respetando la firma de tu backend omitiendo el 'id'
         const newOrderData = {
+            client: clienteName.trim(),
             job_type: jobType,
             quantity: quantity,
             size: size,
@@ -82,11 +137,15 @@ export const NewOrderSection: React.FC = () => {
 
         try {
             console.log("Llamando a tu servicio createOrder con:", newOrderData);
+            setSaveSuccess(true);
 
             // Ejecución directa contra la base de datos distribuida
             await createOrder(newOrderData);
 
-            setSaveSuccess(true);
+            // Limpieza del formulario tras registro exitoso:
+            setClienteName('');
+            setResult(null);
+
             console.log("Flujo de guardado completado de manera exitosa.");
         } catch (err: any) {
             console.error("Fallo al registrar en Turso desde el componente:", err);
@@ -109,6 +168,12 @@ export const NewOrderSection: React.FC = () => {
 
                 {/* FORMULARIO DE ENTRADA */}
                 <form onSubmit={handleSubmit} className="prediction-form" style={{ background: '#fff', padding: '2rem', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', height: 'fit-content' }}>
+
+                    <div style={{ marginBottom: '1.2rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Nombre del Cliente:</label>
+                        <input type="text" value={clienteName} onChange={(e) => setClienteName(e.target.value)} placeholder="Ej. Juan Pérez" style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }} required />
+                    </div>
+
                     <div style={{ marginBottom: '1.2rem' }}>
                         <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Tipo de Trabajo:</label>
                         <select value={jobType} onChange={(e) => setJobType(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }}>
@@ -122,7 +187,7 @@ export const NewOrderSection: React.FC = () => {
 
                     <div style={{ marginBottom: '1.2rem' }}>
                         <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Cantidad:</label>
-                        <input type="number" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} min="1" style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }} />
+                        <input type="number" value={quantity} onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))} min="1" style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }} />
                     </div>
 
                     <div style={{ marginBottom: '1.2rem' }}>
@@ -156,12 +221,12 @@ export const NewOrderSection: React.FC = () => {
                 </form>
 
                 {/* VISTA DE RESULTADOS Y PANEL DE ACCIÓN TURSO */}
-                <div className="prediction-result" style={{ background: '#fff', padding: '2rem', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <div className="prediction-result" style={{ background: '#fff', padding: '2rem', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: 'fit-content' }}>
                     <h3 style={{ marginTop: 0, borderBottom: '2px solid #eee', paddingBottom: '0.5rem' }}>📥 Resultado del Modelo ML</h3>
 
                     {loading && (
                         <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
-                            <p>Procesando variables en el backend...</p>
+                            <p>Procesando variables en el backend y comparando modelos...</p>
                         </div>
                     )}
 
@@ -171,37 +236,36 @@ export const NewOrderSection: React.FC = () => {
                         </div>
                     )}
 
-                    {!loading && !result && !error && (
+                    {!loading && !result && !error && !saveSuccess && (
                         <p style={{ color: '#888', textAlign: 'center', fontStyle: 'italic', padding: '2rem' }}>
                             Modifica los campos de la izquierda y presiona "Predecir Tiempo".
                         </p>
                     )}
 
-                    {result && (
+                    {saveSuccess && (
+                        <div style={{ background: '#d4edda', color: '#155724', padding: '1.5rem', borderRadius: '6px', textAlign: 'center', fontWeight: 'bold' }}>
+                            🎉 ¡Pedido registrado con éxito en la base de datos!
+                        </div>
+                    )}
+
+                    {result && !loading && (
                         <div style={{ marginTop: '1rem' }}>
                             <div style={{ background: '#e2f0d9', padding: '1.5rem', borderRadius: '6px', textAlign: 'center', marginBottom: '1.5rem' }}>
-                                <span style={{ fontSize: '0.9rem', color: '#385723', display: 'block' }}>Tiempo Estimado de Production</span>
-                                <strong style={{ fontSize: '2.5rem', color: '#385723' }}>
-                                    {result.estimated_time !== undefined
-                                        ? `${Number(result.estimated_time).toFixed(2)} min`
-                                        : 'Calculando...'}
+                                <span style={{ fontSize: '0.9rem', color: '#385723', display: 'block', marginBottom: '0.2rem' }}>
+                                    Tiempo Estimado
+                                </span>
+                                <strong style={{ fontSize: '2.2rem', color: '#385723' }}>
+                                    {result.prediction} {result.prediction === 1 ? 'minuto' : 'minutos'}
                                 </strong>
                             </div>
 
-                            {/* CONTROL DE INTERFAZ DEL BOTÓN RECIÉN CREADO */}
-                            {saveSuccess ? (
-                                <div style={{ background: '#d4edda', color: '#155724', padding: '1rem', borderRadius: '4px', textAlign: 'center', marginBottom: '1.5rem', fontWeight: 'bold' }}>
-                                    🎉 ¡Pedido registrado con éxito en Turso!
-                                </div>
-                            ) : (
-                                <button
-                                    onClick={handleRegisterOrder}
-                                    disabled={saving}
-                                    style={{ width: '100%', padding: '1rem', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem', marginBottom: '1.5rem', boxShadow: '0 4px 6px rgba(40,167,69,0.2)' }}
-                                >
-                                    {saving ? 'Guardando en la base de datos...' : '💾 Registrar Pedido en Turso'}
-                                </button>
-                            )}
+                            <button
+                                onClick={handleRegisterOrder}
+                                disabled={saving}
+                                style={{ width: '100%', padding: '1rem', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem', boxShadow: '0 4px 6px rgba(40,167,69,0.2)' }}
+                            >
+                                {saving ? 'Guardando en la base de datos...' : '💾 Registrar Pedido en Turso'}
+                            </button>
                         </div>
                     )}
                 </div>
