@@ -145,9 +145,9 @@ export const Home: React.FC = () => {
             <section className="cta-final-section">
                 <h2>¿Listo para transformar tu producción?</h2>
                 <p>Únete a 500+ empresas que ya optimizan con Impresiones Express</p>
-                <button className="btn-primary-large" onClick={handleStart}>
+                {/* <button className="btn-primary-large" onClick={handleStart}>
                     Comenzar Gratis Hoy
-                </button>
+                </button> */}
             </section>
 
             {/* --- FOOTER --- */}
