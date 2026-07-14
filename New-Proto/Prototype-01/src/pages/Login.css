@@ -1,0 +1,351 @@
+/* --- Variables de Diseño macOS Login --- */
+:root {
+    --login-bg-card: rgba(255, 255, 255, 0.72);
+    --login-border: rgba(0, 0, 0, 0.1);
+    --login-text-primary: #1D1D1F;
+    --login-text-secondary: #86868B;
+    --login-accent-blue: #007AFF;
+    --login-accent-blue-hover: #0062CC;
+    --login-accent-red: #FF3B30;
+    --login-input-bg: rgba(0, 0, 0, 0.035);
+    --login-shadow: 0 30px 70px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.04);
+    --login-spring: cubic-bezier(0.25, 1, 0.2, 1);
+}
+
+/* --- Contenedor de la Página (Pantalla de Bloqueo) --- */
+.login-page {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background-color: #f5f5f7;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* --- Fondo Líquido Dinámico de Luces macOS --- */
+.login-bg-glows {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    pointer-events: none;
+    filter: blur(120px);
+    /* Desenfoque extremo para transiciones ultra suaves */
+    opacity: 0.8;
+}
+
+.bg-glow {
+    position: absolute;
+    width: 40vw;
+    height: 40vw;
+    border-radius: 50%;
+    mix-blend-mode: multiply;
+}
+
+.bg-glow.blue {
+    background: radial-gradient(circle, rgba(0, 122, 255, 0.25) 0%, rgba(0, 122, 255, 0) 70%);
+    top: -10%;
+    right: -5%;
+    animation: float-glow-1 12s ease-in-out infinite alternate;
+}
+
+.bg-glow.green {
+    background: radial-gradient(circle, rgba(52, 199, 89, 0.2) 0%, rgba(52, 199, 89, 0) 70%);
+    bottom: -10%;
+    left: -5%;
+    animation: float-glow-2 15s ease-in-out infinite alternate;
+}
+
+/* --- TARJETA DE LOGIN CENTRAL (Estilo Cristal Esmerilado) --- */
+.login-container {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 380px;
+    padding: 32px;
+    margin: 20px;
+    background: var(--login-bg-card);
+    backdrop-filter: blur(40px) saturate(210%);
+    -webkit-backdrop-filter: blur(40px) saturate(210%);
+    border: 1px solid var(--login-border);
+    border-radius: 20px;
+    box-shadow: var(--login-shadow);
+    text-align: center;
+    box-sizing: border-box;
+
+    /* Entrada fluida */
+    animation: login-card-intro 0.8s var(--login-spring) both;
+    transition: transform 0.4s var(--login-spring), box-shadow 0.4s var(--login-spring);
+}
+
+.login-container:hover {
+    box-shadow: 0 40px 90px rgba(0, 0, 0, 0.16), 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* --- Cabecera con Avatar macOS --- */
+.login-header {
+    margin-bottom: 24px;
+}
+
+.login-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e5e5ea 0%, #d1d1d6 100%);
+    border: 3px solid #ffffff;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+    margin: 0 auto 16px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8e8e93;
+    transition: transform 0.3s var(--login-spring), background 0.3s ease;
+}
+
+.login-container:hover .login-avatar {
+    transform: translateY(-2px) scale(1.02);
+    background: linear-gradient(135deg, #007AFF 0%, #00C7FC 100%);
+    color: #ffffff;
+}
+
+.avatar-icon {
+    width: 32px;
+    height: 32px;
+}
+
+.login-container h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--login-text-primary);
+    letter-spacing: -0.025em;
+    margin: 0 0 6px 0;
+}
+
+.login-container p {
+    font-size: 0.8rem;
+    color: var(--login-text-secondary);
+    line-height: 1.4;
+    margin: 0;
+    padding: 0 10px;
+}
+
+/* --- FORMULARIO & INPUTS --- */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    text-align: left;
+}
+
+.login-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.login-form label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--login-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-left: 2px;
+    transition: color 0.2s ease;
+}
+
+.login-form .form-group:focus-within label {
+    color: var(--login-accent-blue);
+}
+
+.login-form input {
+    width: 100%;
+    padding: 11px 14px;
+    background: var(--login-input-bg);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 9px;
+    font-size: 0.88rem;
+    color: var(--login-text-primary);
+    outline: none;
+    box-sizing: border-box;
+    transition: all 0.25s var(--login-spring);
+}
+
+.login-form input:hover {
+    background: rgba(0, 0, 0, 0.055);
+}
+
+.login-form input:focus {
+    background: #ffffff;
+    border-color: var(--login-accent-blue);
+    box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+/* --- Banner de Error macOS "Notificación" --- */
+.login-error-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 59, 48, 0.08);
+    border: 1px solid rgba(255, 59, 48, 0.15);
+    padding: 10px 12px;
+    border-radius: 9px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--login-accent-red);
+    animation: login-alert-pop 0.3s var(--login-spring) both;
+}
+
+.error-dot {
+    width: 6px;
+    height: 6px;
+    background-color: var(--login-accent-red);
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 6px rgba(255, 59, 48, 0.5);
+}
+
+/* --- BOTÓN PRINCIPAL (Apple Gradient Fill) --- */
+.btn-primary-large {
+    width: 100%;
+    padding: 12px;
+    background: var(--login-accent-blue);
+    color: white;
+    border: none;
+    border-radius: 9px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.2);
+    transition: background-color 0.2s var(--login-spring),
+        transform 0.15s cubic-bezier(0.25, 1, 0.5, 1),
+        box-shadow 0.2s ease;
+}
+
+.btn-primary-large:hover {
+    background-color: var(--login-accent-blue-hover);
+    box-shadow: 0 6px 16px rgba(0, 122, 255, 0.3);
+}
+
+.btn-primary-large:active {
+    transform: scale(0.96);
+}
+
+/* --- ENLACE VOLVER (Estilo Minimalista) --- */
+.btn-link {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--login-text-secondary);
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-top: 24px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s ease;
+}
+
+.btn-link .arrow {
+    transition: transform 0.2s var(--login-spring);
+}
+
+.btn-link:hover {
+    color: var(--login-text-primary);
+}
+
+.btn-link:hover .arrow {
+    transform: translateX(-3px);
+}
+
+/* --- DECLARACIONES DE ANIMACIÓN (KEYFRAMES) --- */
+
+/* Sacudida Física de Error (De izquierda a derecha con amortiguación) */
+@keyframes macos-shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    15% {
+        transform: translateX(-11px);
+    }
+
+    30% {
+        transform: translateX(9px);
+    }
+
+    45% {
+        transform: translateX(-7px);
+    }
+
+    60% {
+        transform: translateX(5px);
+    }
+
+    75% {
+        transform: translateX(-3px);
+    }
+
+    90% {
+        transform: translateX(1px);
+    }
+}
+
+.shake-error {
+    animation: macos-shake 0.35s ease-in-out !important;
+}
+
+/* Entrada de Tarjeta con Perspectiva */
+@keyframes login-card-intro {
+    from {
+        opacity: 0;
+        transform: scale(0.94) translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Emergencia elástica de alertas */
+@keyframes login-alert-pop {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Animaciones para el movimiento sutil de fondo */
+@keyframes float-glow-1 {
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    100% {
+        transform: translate(6vw, 4vw) scale(1.15);
+    }
+}
+
+@keyframes float-glow-2 {
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    100% {
+        transform: translate(-4vw, -6vw) scale(1.12);
+    }
+}

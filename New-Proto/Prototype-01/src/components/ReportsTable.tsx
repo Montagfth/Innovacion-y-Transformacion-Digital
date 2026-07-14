@@ -8,16 +8,16 @@ interface ReportsTableProps {
 
 export const ReportsTable: React.FC<ReportsTableProps> = ({ orders, loading }) => {
     const [searchTerm, setSearchTerm] = useState<string>('');
-    const [currentPage, setCurrentPage] = useState<number>(1); // Estado para la página actual
+    const [currentPage, setCurrentPage] = useState<number>(1);
     const REGISTROS_POR_PAGINA = 25;
 
-    // Reiniciar a la página 1 cuando el usuario filtre con el buscador
     useEffect(() => {
         setCurrentPage(1);
     }, [searchTerm]);
 
     if (loading) return <div className="loading-table">Cargando reportes desde Turso...</div>;
 
+    // Filtramos TODOS los pedidos con estado 'Completado'
     const completedOrders = orders.filter((order) => {
         if (order.status !== 'Completado') return false;
 
@@ -30,6 +30,49 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ orders, loading }) =
             orderId.toString().includes(searchTerm)
         );
     });
+
+    // --- FUNCIÓN PARA EXPORTAR TODOS LOS REGISTROS COMPLETADOS A EXCEL (CSV) ---
+    const handleExportToExcel = () => {
+        if (completedOrders.length === 0) return;
+
+        // 1. Definir las cabeceras de las columnas
+        const headers = ["ID", "Tipo de Trabajo", "Cantidad", "Tamanio", "Material", "Color", "Tiempo Invertido (s)", "Estado"];
+
+        // 2. Mapear cada fila con sus datos correspondientes
+        const csvRows = completedOrders.map(order => {
+            const idMostrar = (order as any).order_id ?? order.id;
+            const jobType = order.job_type ?? (order as any).print_type;
+            const size = order.size ?? (order as any).print_size;
+            const material = order.material ?? (order as any).print_material;
+            const isColored = (order as any).colored ?? order.is_colored ? 'Si' : 'No';
+            const time = Math.round(Number(order.estimated_time ?? 0));
+
+            return [
+                `#${idMostrar}`,
+                `"${jobType}"`,
+                order.quantity,
+                `"${size}"`,
+                `"${material}"`,
+                `"${isColored}"`,
+                `${time}s`,
+                `"${order.status}"`
+            ].join(',');
+        });
+
+        // 3. Unir cabeceras con los datos agregando saltos de línea (Añadimos BOM \uFEFF para soportar tildes en Excel)
+        const csvContent = "\uFEFF" + [headers.join(','), ...csvRows].join('\n');
+
+        // 4. Crear un elemento temporal de descarga
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Reporte_Pedidos_Completados_${new Date().toISOString().slice(0, 10)}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     if (completedOrders.length === 0) {
         return (
@@ -52,13 +95,36 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ orders, loading }) =
         <div className="orders-table-container">
             <div className="table-header-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <h3>Historial de Producción Completada ({completedOrders.length})</h3>
-                <input
-                    type="text"
-                    placeholder="🔍 Buscar reporte por Tipo o ID..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    style={{ padding: '0.5rem 1rem', width: '250px', borderRadius: '4px', border: '1px solid #ccc' }}
-                />
+
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    {/* BOTÓN EXPORTAR EXCEL */}
+                    <button
+                        onClick={handleExportToExcel}
+                        style={{
+                            background: '#217346', // Color verde característico de Microsoft Excel
+                            color: '#fff',
+                            border: 'none',
+                            padding: '0.5rem 1rem',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                        }}
+                    >
+                        📥 Exportar Excel
+                    </button>
+
+                    <input
+                        type="text"
+                        placeholder="🔍 Buscar reporte por Tipo o ID..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{ padding: '0.5rem 1rem', width: '250px', borderRadius: '4px', border: '1px solid #ccc' }}
+                    />
+                </div>
             </div>
 
             <div className="responsive-table">
