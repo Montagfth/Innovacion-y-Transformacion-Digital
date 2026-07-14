@@ -15,9 +15,11 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ orders, loading }) =
         setCurrentPage(1);
     }, [searchTerm]);
 
-    if (loading) return <div className="loading-table">Cargando reportes desde Turso...</div>;
+    if (loading) {
+        return <div className="loading-table">Cargando reportes</div>;
+    }
 
-    // Filtramos TODOS los pedidos con estado 'Completado'
+    // Filtrar pedidos 'Completados'
     const completedOrders = orders.filter((order) => {
         if (order.status !== 'Completado') return false;
 
@@ -31,14 +33,12 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ orders, loading }) =
         );
     });
 
-    // --- FUNCIÓN PARA EXPORTAR TODOS LOS REGISTROS COMPLETADOS A EXCEL (CSV) ---
+    // --- FUNCIÓN EXPORTAR ---
     const handleExportToExcel = () => {
         if (completedOrders.length === 0) return;
 
-        // 1. Definir las cabeceras de las columnas
         const headers = ["ID", "Tipo de Trabajo", "Cantidad", "Tamanio", "Material", "Color", "Tiempo Invertido (s)", "Estado"];
 
-        // 2. Mapear cada fila con sus datos correspondientes
         const csvRows = completedOrders.map(order => {
             const idMostrar = (order as any).order_id ?? order.id;
             const jobType = order.job_type ?? (order as any).print_type;
@@ -59,10 +59,7 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ orders, loading }) =
             ].join(',');
         });
 
-        // 3. Unir cabeceras con los datos agregando saltos de línea (Añadimos BOM \uFEFF para soportar tildes en Excel)
         const csvContent = "\uFEFF" + [headers.join(','), ...csvRows].join('\n');
-
-        // 4. Crear un elemento temporal de descarga
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -76,16 +73,14 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ orders, loading }) =
 
     if (completedOrders.length === 0) {
         return (
-            <div className="orders-table-container">
+            <div className="orders-table-container no-records-card">
                 <h3>Reporte de Pedidos Completados</h3>
-                <p style={{ color: '#666', textAlign: 'center', marginTop: '2rem' }}>
-                    No hay pedidos completados en el historial todavía.
-                </p>
+                <p>No hay pedidos completados en el historial todavía.</p>
             </div>
         );
     }
 
-    // --- LÓGICA DE PAGINACIÓN ---
+    // --- PAGINACIÓN ---
     const totalPages = Math.ceil(completedOrders.length / REGISTROS_POR_PAGINA);
     const startIndex = (currentPage - 1) * REGISTROS_POR_PAGINA;
     const endIndex = startIndex + REGISTROS_POR_PAGINA;
@@ -93,40 +88,41 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ orders, loading }) =
 
     return (
         <div className="orders-table-container">
-            <div className="table-header-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            {/* Acciones superiores */}
+            <div className="table-header-actions">
                 <h3>Historial de Producción Completada ({completedOrders.length})</h3>
 
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                    {/* BOTÓN EXPORTAR EXCEL */}
-                    <button
-                        onClick={handleExportToExcel}
-                        style={{
-                            background: '#217346', // Color verde característico de Microsoft Excel
-                            color: '#fff',
-                            border: 'none',
-                            padding: '0.5rem 1rem',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontWeight: 'bold',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-                        }}
-                    >
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    {/* Botón Exportar */}
+                    <button onClick={handleExportToExcel} className="mac-btn-excel">
                         📥 Exportar Excel
                     </button>
 
-                    <input
-                        type="text"
-                        placeholder="🔍 Buscar reporte por Tipo o ID..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{ padding: '0.5rem 1rem', width: '250px', borderRadius: '4px', border: '1px solid #ccc' }}
-                    />
+                    {/* Buscador Estilo macOS */}
+                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                        <span style={{
+                            position: 'absolute',
+                            left: '12px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            pointerEvents: 'none',
+                            fontSize: '0.85rem',
+                            opacity: 0.6
+                        }}>
+                            🔍
+                        </span>
+                        <input
+                            type="text"
+                            placeholder="Buscar por Tipo o ID..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="mac-search-input"
+                        />
+                    </div>
                 </div>
             </div>
 
+            {/* Tabla Responsive */}
             <div className="responsive-table">
                 <table className="orders-table">
                     <thead>
@@ -137,7 +133,7 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ orders, loading }) =
                             <th>Tamaño</th>
                             <th>Material</th>
                             <th>Color</th>
-                            <th>Tiempo Invertido (s)</th>
+                            <th>Tiempo Invertido</th>
                             <th>Estado</th>
                         </tr>
                     </thead>
@@ -149,19 +145,16 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ orders, loading }) =
                                     <td>#{idMostrar}</td>
                                     <td>{order.job_type ?? (order as any).print_type}</td>
                                     <td>{order.quantity}</td>
-                                    <td><span className="badge-size">{order.size ?? (order as any).print_size}</span></td>
+                                    <td>
+                                        <span className="badge-size">
+                                            {order.size ?? (order as any).print_size}
+                                        </span>
+                                    </td>
                                     <td>{order.material ?? (order as any).print_material}</td>
                                     <td>{order.is_colored ?? (order as any).colored ? 'Sí' : 'No'}</td>
                                     <td><strong>{Math.round(Number(order.estimated_time ?? 0))}s</strong></td>
                                     <td>
-                                        <span style={{
-                                            background: '#d4edda',
-                                            color: '#155724',
-                                            padding: '4px 8px',
-                                            borderRadius: '4px',
-                                            fontSize: '0.85rem',
-                                            fontWeight: 'bold'
-                                        }}>
+                                        <span className="badge-status-completed">
                                             ✅ Completado
                                         </span>
                                     </td>
@@ -172,21 +165,23 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ orders, loading }) =
                 </table>
             </div>
 
-            {/* --- CONTROLES DE PAGINACIÓN --- */}
+            {/* Controles de Paginación */}
             {totalPages > 1 && (
-                <div className="pagination-controls" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '1.5rem' }}>
+                <div className="pagination-controls">
                     <button
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                         disabled={currentPage === 1}
-                        style={{ padding: '0.5rem 1rem', background: '#e0e0e0', border: 'none', borderRadius: '4px', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
+                        className="mac-btn-pagination"
                     >
                         ◀ Anterior
                     </button>
-                    <span style={{ fontWeight: '500' }}>Página {currentPage} de {totalPages}</span>
+                    <span className="pagination-text">
+                        Página {currentPage} de {totalPages}
+                    </span>
                     <button
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                         disabled={currentPage === totalPages}
-                        style={{ padding: '0.5rem 1rem', background: '#e0e0e0', border: 'none', borderRadius: '4px', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
+                        className="mac-btn-pagination"
                     >
                         Siguiente ▶
                     </button>
