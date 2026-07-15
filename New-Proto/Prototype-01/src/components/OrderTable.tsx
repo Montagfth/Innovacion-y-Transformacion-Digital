@@ -65,7 +65,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders, loading, onAss
         setCurrentPage(1);
     }, [searchTerm]);
 
-    if (loading) return <div className="loading-table">Cargando registros desde Turso...</div>;
+    if (loading) return <div className="loading-table">Cargando registros</div>;
     if (!orders || orders.length === 0) return <div className="loading-table">No hay pedidos registrados.</div>;
 
     const filteredOrders = orders.filter((order) => {
