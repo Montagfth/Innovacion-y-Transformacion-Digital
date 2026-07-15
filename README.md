@@ -1,6 +1,6 @@
 # Innovacion & Transformacion Digital | Proyecto: Sistema Inteligente de Planificacion de Produccion - "Impresiones Express"  
   
-###### Desarrollador(es): Montañez Fabrizio | Vilchez Joaquim | Felix Salim | Huapaya Jhordan  
+###### Desarrollador(es): Montañez Fabrizio (100%-Contribution) | Vilchez Joaquim (100%-Contribution) | Felix Salim (0%-Contribution) | Huapaya Jhordan (0%-Contribution)  
   
 Sistema de gestión de pedidos de impresión y diseño industrial con predicción  
 de tiempos de producción mediante Machine Learning y asignación automática de  
