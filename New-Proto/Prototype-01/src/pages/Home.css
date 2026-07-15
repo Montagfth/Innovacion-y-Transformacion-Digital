@@ -1,0 +1,413 @@
+/* ==========================================
+   macOS INSPIRED LIGHT THEME DESIGN
+   ========================================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --mac-bg: #f5f5f7;
+  --mac-text-main: #1d1d1f;
+  --mac-text-muted: #86868b;
+  --mac-blue: #0066cc;
+  --mac-blue-hover: #0077ed;
+  
+  --mac-card-bg: rgba(255, 255, 255, 0.7);
+  --mac-card-border: rgba(0, 0, 0, 0.05);
+  --mac-glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--mac-bg);
+  color: var(--mac-text-main);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* LANDING PAGE WRAPPER & FLUID BACKGROUND */
+.landing-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  overflow-x: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+/* Beautiful macOS fluid abstract colors */
+.landing-page::before,
+.landing-page::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.landing-page::before {
+  background: radial-gradient(circle at 15% 30%, rgba(0, 102, 204, 0.15), transparent 55%),
+              radial-gradient(circle at 85% 20%, rgba(255, 59, 48, 0.12), transparent 50%);
+  animation: floatBlobs 20s ease-in-out infinite alternate;
+}
+
+.landing-page::after {
+  background: radial-gradient(circle at 50% 80%, rgba(175, 82, 222, 0.12), transparent 55%),
+              radial-gradient(circle at 20% 90%, rgba(255, 149, 0, 0.1), transparent 50%);
+  animation: floatBlobs2 25s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes floatBlobs {
+  0% { transform: scale(1) translate(0, 0); }
+  50% { transform: scale(1.1) translate(3%, 4%); }
+  100% { transform: scale(1) translate(-3%, -4%); }
+}
+
+@keyframes floatBlobs2 {
+  0% { transform: scale(1) translate(0, 0); }
+  50% { transform: scale(1.15) translate(-4%, 6%); }
+  100% { transform: scale(1) translate(4%, -6%); }
+}
+
+/* HERO SECTION */
+.hero-section {
+  width: 100%;
+  max-width: 1000px;
+  padding: 120px 20px 80px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hero-section h1 {
+  font-size: 56px;
+  font-weight: 700;
+  letter-spacing: -1.5px;
+  margin-bottom: 24px;
+  line-height: 1.1;
+  background: linear-gradient(135deg, #1d1d1f 0%, #434344 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-subtitle {
+  font-size: 21px;
+  font-weight: 400;
+  color: var(--mac-text-muted);
+  max-width: 600px;
+  line-height: 1.5;
+  margin-bottom: 40px;
+}
+
+/* macOS BUTTONS */
+.btn-primary {
+  background-color: var(--mac-blue);
+  color: white;
+  border: none;
+  border-radius: 980px; /* Fully rounded Apple style */
+  padding: 14px 28px;
+  font-size: 17px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(0, 102, 204, 0.3);
+}
+
+.btn-primary:hover {
+  background-color: var(--mac-blue-hover);
+  transform: scale(1.02);
+}
+
+/* SECTION TITLES */
+section h2 {
+  font-size: 40px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  text-align: center;
+  margin-bottom: 48px;
+  color: var(--mac-text-main);
+}
+
+/* FEATURES SECTION */
+.features-section {
+  width: 100%;
+  max-width: 1100px;
+  padding: 60px 20px;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+/* GLASSMORPHISM CARDS */
+.feature-card, .stat-card, .testimonial-card {
+  background: var(--mac-card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--mac-card-border);
+  border-radius: 18px;
+  padding: 32px;
+  box-shadow: var(--mac-glass-shadow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover, .stat-card:hover, .testimonial-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+}
+
+.feature-card h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.feature-card p {
+  font-size: 15px;
+  color: var(--mac-text-muted);
+  line-height: 1.5;
+}
+
+/* STATS SECTION */
+.stats-section {
+  width: 100%;
+  max-width: 1100px;
+  padding: 60px 20px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+}
+
+.stat-card {
+  text-align: center;
+}
+
+.stat-icon {
+  font-size: 32px;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.stat-card h3 {
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: -1px;
+}
+
+.stat-card p {
+  font-size: 15px;
+  color: var(--mac-text-muted);
+  font-weight: 500;
+}
+
+/* TESTIMONIALS SECTION */
+.testimonials-section {
+  width: 100%;
+  max-width: 1100px;
+  padding: 60px 20px;
+}
+
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.testimonial-user {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.user-icon {
+  font-size: 36px;
+  background: #e5e5ea;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.testimonial-user h4 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.testimonial-user span {
+  font-size: 13px;
+  color: var(--mac-text-muted);
+}
+
+.testimonial-card p {
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.stars {
+  font-size: 14px;
+}
+
+/* FAQ SECTION */
+.faq-section {
+  width: 100%;
+  max-width: 800px;
+  padding: 60px 20px;
+}
+
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.faq-item {
+  background: white;
+  border: 1px solid var(--mac-card-border);
+  border-radius: 14px;
+  padding: 20px 24px;
+  box-shadow: var(--mac-glass-shadow);
+  transition: all 0.3s ease;
+}
+
+.faq-item summary {
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item summary::after {
+  content: '+';
+  font-size: 24px;
+  color: var(--mac-blue);
+  transition: transform 0.3s ease;
+}
+
+.faq-item[open] summary::after {
+  transform: rotate(45deg);
+}
+
+.faq-item p {
+  margin-top: 16px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--mac-text-muted);
+}
+
+/* FINAL CTA */
+.cta-final-section {
+  width: 100%;
+  padding: 100px 20px;
+  text-align: center;
+  background: white;
+  border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+.cta-final-section h2 {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.cta-final-section p {
+  font-size: 21px;
+  color: var(--mac-text-muted);
+  margin-bottom: 32px;
+}
+
+/* FOOTER */
+.landing-footer {
+  width: 100%;
+  background: #f5f5f7;
+  padding: 60px 40px 30px;
+  border-top: 1px solid rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.footer-content {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 40px;
+  margin-bottom: 60px;
+}
+
+.footer-brand h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.footer-brand p {
+  color: var(--mac-text-muted);
+  font-size: 13px;
+}
+
+.footer-links-container {
+  display: flex;
+  gap: 80px;
+  flex-wrap: wrap;
+}
+
+.footer-links-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footer-links-column h4 {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mac-text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.footer-links-column a {
+  color: var(--mac-text-muted);
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s ease;
+}
+
+.footer-links-column a:hover {
+  color: var(--mac-text-main);
+}
+
+.footer-bottom {
+  width: 100%;
+  max-width: 1100px;
+  border-top: 1px solid rgba(0,0,0,0.1);
+  padding-top: 20px;
+  text-align: left;
+}
+
+.footer-bottom p {
+  font-size: 12px;
+  color: var(--mac-text-muted);
+}
