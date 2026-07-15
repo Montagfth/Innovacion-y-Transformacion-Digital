@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { OrdersTable } from './OrderTable'; // Tu componente de tabla corregido
 import { getOrders, updateOrderToCompleted } from '../services/OrderServices'; // Importamos los servicios
 import type { OrderData } from '../types/Order';
+import './OrdersModule.css'; // Importación de estilos macOS
 
 export const OrdersSection: React.FC = () => {
     const [orders, setOrders] = useState<OrderData[]>([]);
@@ -23,18 +24,18 @@ export const OrdersSection: React.FC = () => {
         fetchOrders();
     }, []);
 
-    // FUNCIÓN PARA MANEJAR LA ASIGNACIÓN (Si ya la tienes implementada)
+    // FUNCIÓN PARA MANEJAR LA ASIGNACIÓN
     const handleAssignMachine = async (orderId: number, machineId: number) => {
         // Tu lógica actual para asignar máquina en el backend...
         console.log(`Asignando pedido ${orderId} a máquina ${machineId}`);
     };
 
-    // AQUÍ VA LA FUNCIÓN QUE SOLICITASTE
+    // FUNCIÓN PARA COMPLETAR PEDIDO
     const handleCompleteOrder = async (orderId: number) => {
         try {
             // 1. Petición al servicio para hacer el UPDATE a 'Completado' en Turso
             await updateOrderToCompleted(orderId);
-            
+
             // 2. Remueve el pedido de la pantalla instantáneamente sin recargar la página
             setOrders(prevOrders => prevOrders.filter(order => {
                 const idActual = Number(order.id ?? (order as any).order_id);
@@ -48,12 +49,11 @@ export const OrdersSection: React.FC = () => {
 
     return (
         <div className="orders-section-wrapper">
-            {/* Pasamos las funciones como props al hijo */}
-            <OrdersTable 
-                orders={orders} 
-                loading={loading} 
-                onAssignMachine={handleAssignMachine} 
-                onCompleteOrder={handleCompleteOrder} 
+            <OrdersTable
+                orders={orders}
+                loading={loading}
+                onAssignMachine={handleAssignMachine}
+                onCompleteOrder={handleCompleteOrder}
             />
         </div>
     );
