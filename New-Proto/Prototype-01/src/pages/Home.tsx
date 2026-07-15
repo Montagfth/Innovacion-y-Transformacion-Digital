@@ -17,7 +17,7 @@ export const Home: React.FC = () => {
             <header className="hero-section">
                 <h1>Predice Tiempos de Producción con IA</h1>
                 <p className="hero-subtitle">
-                    Sistema inteligente basado en Machine Learning para optimizar tu clínica.
+                    Sistema inteligente basado en Machine Learning para optimizar tu empresa de impresiones.
                     Reduce retrasos, mejora la planificación y aumenta la rentabilidad.
                 </p>
                 <div className="hero-actions">
@@ -89,7 +89,7 @@ export const Home: React.FC = () => {
                                 <span>Gerente de Producción @ PrintFlow Solutions</span>
                             </div>
                         </div>
-                        <p>"La clínica redujo nuestros retrasos en 40%. El ML predice con increíble precisión."</p>
+                        <p>"El sistema redujo nuestros retrasos en 40%. El ML predice con increíble precisión."</p>
                         <div className="stars">⭐⭐⭐⭐⭐</div>
                     </div>
 
