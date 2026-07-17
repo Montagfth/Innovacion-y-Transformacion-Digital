@@ -116,10 +116,16 @@
 /* --- TABLA RETINA RESPONSIVE --- */
 .responsive-table {
     width: 100%;
-    overflow-x: auto;
+    overflow-x: hidden; /* Prevent horizontal scroll unless necessary on very small screens */
     border-radius: 12px;
     border: 1px solid rgba(0, 0, 0, 0.05);
     background: rgba(255, 255, 255, 0.3);
+}
+
+@media (max-width: 1200px) {
+    .responsive-table {
+        overflow-x: auto; /* Enable scroll only when stacked on smaller screens */
+    }
 }
 
 .orders-table {
@@ -180,6 +186,46 @@
     letter-spacing: -0.01em;
 }
 
+.badge-job {
+    background: rgba(0, 122, 255, 0.1);
+    color: #0066d6;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    display: inline-block;
+}
+
+.badge-material {
+    background: rgba(255, 149, 0, 0.1);
+    color: #cc7a00;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    display: inline-block;
+}
+
+.badge-color.yes {
+    background: rgba(175, 82, 222, 0.1);
+    color: #8c29b8;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    display: inline-block;
+}
+
+.badge-color.no {
+    background: rgba(142, 142, 147, 0.15);
+    color: #666666;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    display: inline-block;
+}
+
 /* --- ESTILOS DE CARGA / SIN REGISTROS --- */
 .loading-table {
     padding: 60px;
@@ -220,19 +266,27 @@
     background: rgba(255, 255, 255, 0.7);
     border: 1px solid rgba(0, 0, 0, 0.08);
     color: var(--color-primary);
-    padding: 6px 14px;
+    padding: 6px 12px;
     border-radius: 8px;
     cursor: pointer;
     font-size: 0.78rem;
     font-weight: 600;
     transition: all 0.2s var(--apple-spring);
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+    min-width: 32px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
-.mac-btn-pagination:hover:not(:disabled) {
+.mac-btn-pagination.active {
+    background: #007aff;
+    color: #ffffff;
+    border-color: #007aff;
+    box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3);
+}
+
+.mac-btn-pagination:hover:not(:disabled):not(.active) {
     background: #ffffff;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
     transform: translateY(-1px);
@@ -244,10 +298,16 @@
     background: rgba(0, 0, 0, 0.03);
 }
 
-.pagination-text {
-    font-size: 0.8rem;
-    font-weight: 550;
+.pagination-numbers {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.pagination-dots {
     color: var(--color-secondary);
+    padding: 0 4px;
+    font-weight: 600;
 }
 
 /* --- ANIMACIONES DE LA INTERFAZ --- */
@@ -298,5 +358,163 @@
 
     .mac-btn-excel {
         justify-content: center;
+    }
+}
+
+/* --- PREMIUM ROW & AVATARS --- */
+.premium-row {
+    background-color: #ffffff;
+    transition: all 0.3s ease !important;
+}
+
+.premium-row:hover {
+    background-color: #f8fafc !important;
+    transform: scale(1.002);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    z-index: 10;
+    position: relative;
+    border-radius: 8px;
+}
+
+/* ID Cell */
+.id-wrapper {
+    display: inline-flex;
+    align-items: center;
+    background: #f1f5f9;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 700;
+    color: #334155;
+    font-size: 0.8rem;
+}
+.id-hash {
+    color: #94a3b8;
+    margin-right: 2px;
+}
+
+/* Job Avatar */
+.job-cell-content {
+    display: flex;
+    align-items: center;
+    gap: 6px; /* Reduced gap to save horizontal space */
+}
+.job-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #475569;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+}
+.avatar-1 { /* colores removidos */ }
+.avatar-2 { /* colores removidos */ }
+.avatar-3 { /* colores removidos */ }
+.avatar-4 { /* colores removidos */ }
+.avatar-5 { /* colores removidos */ }
+.job-text {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 0.85rem;
+}
+
+/* Qty Cell */
+.qty-cell {
+    font-weight: 700;
+    color: #0f172a;
+}
+.qty-label {
+    font-weight: 500;
+    color: #64748b;
+    font-size: 0.7rem;
+    margin-left: 4px;
+}
+
+/* Premium Badges with Icons */
+.premium-badge {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px !important;
+    border-radius: 20px !important;
+    font-weight: 600 !important;
+    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.premium-badge svg {
+    opacity: 0.7;
+}
+
+/* Time */
+.time-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #475569;
+    background: #f8fafc;
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    .time-wrapper {
+        padding: 4px 6px;
+    }
+}
+
+/* --- SPLIT TABLES VIEW --- */
+.split-tables-wrapper {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.split-side {
+    flex: 1;
+    min-width: 0; /* Important to prevent flex items from overflowing */
+}
+
+.compact-table {
+    table-layout: auto;
+    width: 100%;
+}
+
+.compact-table th {
+    padding: 8px 6px;
+    font-size: 0.65rem;
+    white-space: nowrap;
+}
+
+.compact-table td {
+    padding: 8px 6px;
+    font-size: 0.75rem;
+}
+
+.compact-badge {
+    padding: 3px 6px !important;
+    font-size: 0.65rem !important;
+    gap: 4px !important;
+}
+
+.compact-time {
+    padding: 2px 4px;
+    font-size: 0.7rem;
+}
+
+.text-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+@media (max-width: 1200px) {
+    .split-tables-wrapper {
+        flex-direction: column;
     }
 }

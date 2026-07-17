@@ -6,10 +6,16 @@ interface ReportsTableProps {
     loading: boolean;
 }
 
+const JOB_TYPES: Record<string, string> = { '1': 'Sublimación', '2': 'Serigrafía', '3': 'Vinil', '4': 'DTF', '5': 'Transfer' };
+const SIZES: Record<string, string> = { '1': 'Pequeño', '2': 'Mediano', '3': 'Grande', '4': 'Extra Grande' };
+const MATERIALS: Record<string, string> = { '1': 'Algodón', '2': 'Poliéster', '3': 'Mixto', '4': 'Lona', '5': 'Especial' };
+
+const getLabel = (dict: Record<string, string>, val: any) => dict[String(val)] || val || 'N/A';
+
 export const ReportsTable: React.FC<ReportsTableProps> = ({ orders, loading }) => {
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [currentPage, setCurrentPage] = useState<number>(1);
-    const REGISTROS_POR_PAGINA = 25;
+    const REGISTROS_POR_PAGINA = 20; // 10 izquierda, 10 derecha para que encaje sin scroll vertical
 
     useEffect(() => {
         setCurrentPage(1);
@@ -41,10 +47,10 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ orders, loading }) =
 
         const csvRows = completedOrders.map(order => {
             const idMostrar = (order as any).order_id ?? order.id;
-            const jobType = order.job_type ?? (order as any).print_type;
-            const size = order.size ?? (order as any).print_size;
-            const material = order.material ?? (order as any).print_material;
-            const isColored = (order as any).colored ?? order.is_colored ? 'Si' : 'No';
+            const jobType = getLabel(JOB_TYPES, order.job_type ?? (order as any).print_type);
+            const size = getLabel(SIZES, order.size ?? (order as any).print_size);
+            const material = getLabel(MATERIALS, order.material ?? (order as any).print_material);
+            const isColored = (order as any).colored ?? order.is_colored ? 'Color' : 'B/N';
             const time = Math.round(Number(order.estimated_time ?? 0));
 
             return [
@@ -122,47 +128,78 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ orders, loading }) =
                 </div>
             </div>
 
-            {/* Tabla Responsive */}
-            <div className="responsive-table">
-                <table className="orders-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Tipo de Trabajo</th>
-                            <th>Cantidad</th>
-                            <th>Tamaño</th>
-                            <th>Material</th>
-                            <th>Color</th>
-                            <th>Tiempo Invertido</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {currentOrders.map((order) => {
-                            const idMostrar = (order as any).order_id ?? order.id;
-                            return (
-                                <tr key={idMostrar}>
-                                    <td>#{idMostrar}</td>
-                                    <td>{order.job_type ?? (order as any).print_type}</td>
-                                    <td>{order.quantity}</td>
-                                    <td>
-                                        <span className="badge-size">
-                                            {order.size ?? (order as any).print_size}
-                                        </span>
-                                    </td>
-                                    <td>{order.material ?? (order as any).print_material}</td>
-                                    <td>{order.is_colored ?? (order as any).colored ? 'Sí' : 'No'}</td>
-                                    <td><strong>{Math.round(Number(order.estimated_time ?? 0))}s</strong></td>
-                                    <td>
-                                        <span className="badge-status-completed">
-                                            ✅ Completado
-                                        </span>
-                                    </td>
+            {/* Tabla Dividida (Split View) */}
+            <div className="split-tables-wrapper">
+                {[
+                    currentOrders.slice(0, Math.ceil(currentOrders.length / 2)),
+                    currentOrders.slice(Math.ceil(currentOrders.length / 2))
+                ].map((ordersColumn, idx) => (
+                    <div className="responsive-table split-side" key={idx}>
+                        <table className="orders-table compact-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Trabajo</th>
+                                    <th>Cant.</th>
+                                    <th>Tamaño</th>
+                                    <th>Material</th>
+                                    <th>Color</th>
+                                    <th>Tiempo</th>
+                                    <th>Estado</th>
                                 </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
+                            </thead>
+                            <tbody>
+                                {ordersColumn.map((order) => {
+                                    const idMostrar = (order as any).order_id ?? order.id;
+                                    const rawJobType = order.job_type ?? (order as any).print_type;
+                                    return (
+                                        <tr key={idMostrar} className="premium-row">
+                                            <td className="id-cell">
+                                                <div className="id-wrapper">
+                                                    <span className="id-hash">#</span>
+                                                    {idMostrar}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span className="job-text text-truncate" title={getLabel(JOB_TYPES, rawJobType)}>
+                                                    {getLabel(JOB_TYPES, rawJobType)}
+                                                </span>
+                                            </td>
+                                            <td className="qty-cell">
+                                                <span className="qty-val">{order.quantity}</span>
+                                            </td>
+                                            <td>
+                                                <span className="badge-size premium-badge compact-badge">
+                                                    {getLabel(SIZES, order.size ?? (order as any).print_size)}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span className="badge-material premium-badge compact-badge">
+                                                    {getLabel(MATERIALS, order.material ?? (order as any).print_material)}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span className={`badge-color ${order.is_colored ?? (order as any).colored ? 'yes' : 'no'} premium-badge compact-badge`}>
+                                                    {order.is_colored ?? (order as any).colored ? 'Color' : 'B/N'}
+                                                </span>
+                                            </td>
+                                            <td className="time-cell">
+                                                <div className="time-wrapper compact-time">
+                                                    <strong>{Math.round(Number(order.estimated_time ?? 0))}s</strong>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span className="badge-status-completed premium-badge compact-badge" title="Completado">
+                                                    ✅
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                ))}
             </div>
 
             {/* Controles de Paginación */}
@@ -173,17 +210,49 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ orders, loading }) =
                         disabled={currentPage === 1}
                         className="mac-btn-pagination"
                     >
-                        ◀ Anterior
+                        ◀
                     </button>
-                    <span className="pagination-text">
-                        Página {currentPage} de {totalPages}
-                    </span>
+
+                    <div className="pagination-numbers">
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                            let pageNum;
+                            if (totalPages <= 5) {
+                                pageNum = i + 1;
+                            } else if (currentPage <= 3) {
+                                pageNum = i + 1;
+                            } else if (currentPage >= totalPages - 2) {
+                                pageNum = totalPages - 4 + i;
+                            } else {
+                                pageNum = currentPage - 2 + i;
+                            }
+
+                            return (
+                                <button
+                                    key={pageNum}
+                                    onClick={() => setCurrentPage(pageNum)}
+                                    className={`mac-btn-pagination number-btn ${currentPage === pageNum ? 'active' : ''}`}
+                                >
+                                    {pageNum}
+                                </button>
+                            );
+                        })}
+                        {totalPages > 5 && currentPage < totalPages - 2 && <span className="pagination-dots">...</span>}
+                        {totalPages > 5 && currentPage < totalPages - 2 && (
+                            <button
+                                onClick={() => setCurrentPage(totalPages)}
+                                className={`mac-btn-pagination number-btn ${currentPage === totalPages ? 'active' : ''}`}
+                            >
+                                {totalPages}
+                            </button>
+                        )}
+                    </div>
+
                     <button
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                         disabled={currentPage === totalPages}
                         className="mac-btn-pagination"
                     >
-                        Siguiente ▶
+                        ▶
                     </button>
                 </div>
             )}
