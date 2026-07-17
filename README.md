@@ -1,6 +1,6 @@
 # Innovacion & Transformacion Digital | Proyecto: Sistema Inteligente de Planificacion de Produccion - "Impresiones Express"  
   
-###### Desarrollador(es): Montañez Fabrizio (100%-Contribution) | Vilchez Joaquim (100%-Contribution) | Felix Salim (0%-Contribution) | Huapaya Jhordan (0%-Contribution)  
+###### Desarrollador(es): Montañez Fabrizio (100%-Contribution) | Vilchez Joaquim (100%-Contribution) | Felix Salim (75%-Contribution) | Huapaya Jhordan (0%-Contribution)  
   
 Sistema de gestión de pedidos de impresión y diseño industrial con predicción  
 de tiempos de producción mediante Machine Learning y asignación automática de  
@@ -51,14 +51,14 @@ máquinas por prioridad y disponibilidad.
    ```
 
 3. Configuración de la base de datos:
-Actualmente las credenciales de Turso (TURSO_DB_URL y TURSO_TOKEN) están
+Actualmente las credenciales de Turso (TURSO_DB_URL y TURSO_DATABASE_TOKEN) están
 escritas directamente en src/services/OrderServices.ts.
 (NO ES RECOMENDABLE. Solo se usó así por ser un proyecto académico. Lo ideal
 es migrarlas a variables de entorno con import.meta.env y un archivo .env.)
    
 ```env
    TURSO_DATABASE_URL={Aqui va la URL de la base de datos desplegada en turso}
-   TURSO_DATABASE_ANON_KEY={Aqui va la clave token de Turso}
+   TURSO_DATABASE_TOKEN={Aqui va la clave token de Turso}
    ```
 
 4. Ejecuta el servidor de desarrollo:
@@ -69,7 +69,7 @@ es migrarlas a variables de entorno con import.meta.env y un archivo .env.)
 5. Abre http://localhost:5173 en tu navegador.
 Credenciales de acceso: admin@admin.com / admin1.
 
-## 📂 Estructura del Proyecto
+## 📂 Estructura del Proyecto (Sujeto a actualizaciones)
 
 ```text
 Prototype-01/  
@@ -130,7 +130,9 @@ La predicción NO es un módulo local: src/services/PredictionService.ts y
 src/components/NewOrderSection.tsx consumen una API externa desplegada en
 Render que expone tres algoritmos (linear_regression, random_forest,
 decision_tree).
-- Modelo ML en Python: https://github.com/Montagfth/Proyecto-Desarrollo.git
+
+Modelo ML en Python: https://github.com/Montagfth/Proyecto-Desarrollo.git
+
 El sistema consulta los tres en paralelo y selecciona una
 predicción según los tiempos estimados devueltos.
 
