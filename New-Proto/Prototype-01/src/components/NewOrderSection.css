@@ -675,3 +675,103 @@
         opacity: 1;
     }
 }
+
+/* --- Panel de Confianza del Ensemble --- */
+.macos-confidence-panel {
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    background: rgba(52, 199, 89, 0.04);
+    border: 1px solid rgba(52, 199, 89, 0.12);
+    border-radius: 10px;
+    animation: macos-fade-slide-up 0.4s var(--macos-spring-curve) both;
+}
+
+.confidence-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.confidence-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--macos-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.confidence-value {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #248A3D;
+}
+
+.confidence-bar {
+    height: 6px;
+    background: rgba(0, 0, 0, 0.06);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.confidence-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #34C759, #30D158);
+    border-radius: 3px;
+    transition: width 0.6s var(--macos-spring-curve);
+}
+
+/* --- Desglose de Predicciones por Modelo --- */
+.macos-model-breakdown {
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    background: rgba(0, 122, 255, 0.03);
+    border: 1px solid rgba(0, 122, 255, 0.1);
+    border-radius: 10px;
+    animation: macos-fade-slide-up 0.5s var(--macos-spring-curve) both;
+}
+
+.breakdown-title {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--macos-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+}
+
+.breakdown-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.breakdown-item:last-child {
+    border-bottom: none;
+}
+
+.breakdown-model {
+    font-size: 0.75rem;
+    color: var(--macos-text-primary);
+    font-weight: 500;
+}
+
+.breakdown-value {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--macos-accent-blue);
+    text-align: right;
+}
+
+.breakdown-weight {
+    font-size: 0.68rem;
+    color: var(--macos-text-secondary);
+    background: rgba(0, 0, 0, 0.04);
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-align: right;
+}
