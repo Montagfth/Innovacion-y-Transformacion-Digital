@@ -4,6 +4,67 @@ import './NewOrderSection.css';
 // Importamos directamente las funciones de tu servicio de órdenes
 import { createOrder } from '../services/OrderServices';
 
+// Pesos de confianza histórica de cada modelo (similar a Random Forest)
+// Estos valores se ajustan según el rendimiento observado de cada algoritmo
+const MODEL_CONFIDENCE_WEIGHTS: Record<string, number> = {
+    'random_forest': 0.45,
+    'decision_tree': 0.30,
+    'linear_regression': 0.25
+};
+
+// Función para calcular el promedio ponderado (ensemble) de las predicciones
+const calculateWeightedEnsemble = (
+    responses: Array<{ model: string; data: any }>
+): {
+    weightedPrediction: number;
+    winnerModel: string;
+    confidence: number;
+    allPredictions: Array<{ model: string; value: number; weight: number; weightedValue: number }>;
+} => {
+    const validPredictions = responses
+        .filter(r => r.data !== null)
+        .map(r => {
+            const value = Number(r.data.prediction ?? r.data.estimated_time ?? r.data);
+            const weight = MODEL_CONFIDENCE_WEIGHTS[r.model] || 0.33;
+            return {
+                model: r.model,
+                value,
+                weight,
+                weightedValue: value * weight
+            };
+        })
+        .filter(p => !isNaN(p.value) && p.value > 0);
+
+    if (validPredictions.length === 0) {
+        return { weightedPrediction: 0, winnerModel: 'N/A', confidence: 0, allPredictions: [] };
+    }
+
+    // Calcular promedio ponderado
+    const totalWeight = validPredictions.reduce((sum, p) => sum + p.weight, 0);
+    const weightedPrediction = validPredictions.reduce((sum, p) => sum + p.weightedValue, 0) / totalWeight;
+
+    // El "ganador" es el modelo cuya predicción está más cerca del promedio ponderado
+    const winner = validPredictions.reduce((closest, current) => {
+        const distCurrent = Math.abs(current.value - weightedPrediction);
+        const distClosest = Math.abs(closest.value - weightedPrediction);
+        return distCurrent < distClosest ? current : closest;
+    });
+
+    // Confianza basada en la consistencia entre modelos (diversidad de predicciones)
+    const predictions = validPredictions.map(p => p.value);
+    const mean = predictions.reduce((s, v) => s + v, 0) / predictions.length;
+    const variance = predictions.reduce((s, v) => s + Math.pow(v - mean, 2), 0) / predictions.length;
+    const cv = Math.sqrt(variance) / Math.max(mean, 1); // Coeficiente de variación
+    const confidence = Math.max(0, Math.min(100, Math.round((1 - cv) * 100)));
+
+    return {
+        weightedPrediction,
+        winnerModel: winner.model,
+        confidence,
+        allPredictions: validPredictions
+    };
+};
+
 export const NewOrderSection: React.FC = () => {
     // Estados del Formulario de Entrada
     const [jobType, setJobType] = useState<string>('Banner');
@@ -18,19 +79,23 @@ export const NewOrderSection: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [result, setResult] = useState<any>(null);
     const [usedAlgorithm, setUsedAlgorithm] = useState<string>('');
+    const [predictionConfidence, setPredictionConfidence] = useState<number>(0);
+    const [modelBreakdown, setModelBreakdown] = useState<Array<{ model: string; value: number; weight: number }>>([]);
     const [error, setError] = useState<string | null>(null);
 
     // Estados de Control para la Inserción SQL en Turso
     const [saving, setSaving] = useState<boolean>(false);
     const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
 
-    // 1. Manejo del cálculo paralelo de los tres modelos de ML
+    // 1. Manejo del cálculo paralelo de los tres modelos de ML con ensemble ponderado
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
         setResult(null);
         setUsedAlgorithm('');
+        setPredictionConfidence(0);
+        setModelBreakdown([]);
         setSaveSuccess(false);
 
         const models = ['linear_regression', 'random_forest', 'decision_tree'];
@@ -54,7 +119,7 @@ export const NewOrderSection: React.FC = () => {
         });
 
         try {
-            console.log("🤖 Consultando y comparando algoritmos de Machine Learning...");
+            console.log("🤖 Consultando y comparando algoritmos de Machine Learning (Ensemble Ponderado)...");
             const responses = await Promise.all(requests);
 
             console.log("🔍 Respuestas crudas del servidor:", responses);
@@ -70,23 +135,32 @@ export const NewOrderSection: React.FC = () => {
                 throw new Error("El servidor de predicciones no retornó un formato numérico válido en este momento.");
             }
 
-            const optimalResponse = validResponses.reduce((prev, current) => {
-                const prevValue = Number(prev.data.prediction ?? prev.data.estimated_time ?? prev.data);
-                const currValue = Number(current.data.prediction ?? current.data.estimated_time ?? current.data);
-                return currValue > prevValue ? current : prev;
+            // Aplicar lógica de ensemble ponderado (inspirada en Random Forest)
+            const ensemble = calculateWeightedEnsemble(validResponses);
+
+            console.log("📊 Resultado del ensemble ponderado:", {
+                prediccionPonderada: ensemble.weightedPrediction,
+                modeloGanador: ensemble.winnerModel,
+                confianza: ensemble.confidence,
+                desglose: ensemble.allPredictions
             });
 
-            const rawPrediction = optimalResponse.data.prediction ?? optimalResponse.data.estimated_time ?? optimalResponse.data;
-            const positivePrediction = Math.max(1, Number(rawPrediction));
-            const finalPredictionInteger = Math.round(positivePrediction);
+            if (ensemble.weightedPrediction <= 0) {
+                throw new Error("No se pudo calcular una predicción válida con los modelos disponibles.");
+            }
 
-            console.log(`%c📊 ALGORITMO GANADOR: ${optimalResponse.model} | Tiempo estimado original: ${rawPrediction} -> Ajustado a entero: ${finalPredictionInteger} horas`, "color: #007bff; font-weight: bold; font-size: 13px;");
+            const finalPredictionInteger = Math.round(Math.max(1, ensemble.weightedPrediction));
 
-            setUsedAlgorithm(optimalResponse.model);
+            console.log(`%c📊 ENSEMBLE PONDERADO (Random Forest Style) | Predicción final: ${finalPredictionInteger} min | Modelo representativo: ${ensemble.winnerModel} | Confianza: ${ensemble.confidence}%`, "color: #007bff; font-weight: bold; font-size: 13px;");
+
+            setUsedAlgorithm(ensemble.winnerModel);
+            setPredictionConfidence(ensemble.confidence);
+            setModelBreakdown(ensemble.allPredictions);
 
             setResult({
-                ...optimalResponse.data,
-                prediction: finalPredictionInteger
+                prediction: finalPredictionInteger,
+                ensemble_used: true,
+                confidence: ensemble.confidence
             });
 
         } catch (err: any) {
@@ -111,15 +185,25 @@ export const NewOrderSection: React.FC = () => {
 
         const predictionValue = result.prediction !== undefined ? Number(result.prediction) : 1;
 
+        // Detección de prioridad: si el nombre inicia con "Empresa" o "empresa" → prioridad 1
+        const clientNameTrimmed = clienteName.trim();
+        const isEmpresa = clientNameTrimmed.toLowerCase().startsWith('empresa');
+        const orderPriority = isEmpresa ? 1 : 0;
+
+        if (isEmpresa) {
+            console.log(`🏢 Cliente detectado como Empresa: "${clientNameTrimmed}" → Prioridad ALTA (1)`);
+        }
+
         const newOrderData = {
-            client: clienteName.trim(),
+            client: clientNameTrimmed,
             job_type: jobType,
             quantity: quantity,
             size: size,
             material: material,
             is_colored: isColored,
             estimated_time: predictionValue,
-            status: 'Producción' as const
+            status: 'Producción' as const,
+            priority: orderPriority
         };
 
         try {
@@ -305,21 +389,51 @@ export const NewOrderSection: React.FC = () => {
                                 {usedAlgorithm && (
                                     <div className="macos-algorithm-badge">
                                         <span className="macos-badge">
-                                            Algoritmo óptimo: {usedAlgorithm}
+                                            Ensemble Ponderado: {usedAlgorithm}
                                         </span>
+                                    </div>
+                                )}
+
+                                {/* Panel de confianza del ensemble */}
+                                {predictionConfidence > 0 && (
+                                    <div className="macos-confidence-panel">
+                                        <div className="confidence-header">
+                                            <span className="confidence-label">Confianza del Ensemble</span>
+                                            <span className="confidence-value">{predictionConfidence}%</span>
+                                        </div>
+                                        <div className="confidence-bar">
+                                            <div
+                                                className="confidence-bar-fill"
+                                                style={{ width: `${predictionConfidence}%` }}
+                                            />
+                                        </div>
                                     </div>
                                 )}
 
                                 {/* Panel central de tiempos */}
                                 <div className="macos-result-card">
-                                    <span className="macos-result-card-label">Tiempo Estimado</span>
+                                    <span className="macos-result-card-label">Tiempo Estimado (Ensemble)</span>
                                     <strong className="macos-result-card-value">
                                         {result.prediction} {result.prediction === 1 ? 'minuto' : 'minutos'}
                                     </strong>
                                     <span className="macos-result-card-note">
-                                        Ajustado bajo criterio de escenario seguro
+                                        Promedio ponderado de 3 modelos ML (Random Forest style)
                                     </span>
                                 </div>
+
+                                {/* Desglose de predicciones por modelo */}
+                                {modelBreakdown.length > 0 && (
+                                    <div className="macos-model-breakdown">
+                                        <span className="breakdown-title">Desglose por Modelo:</span>
+                                        {modelBreakdown.map((item, index) => (
+                                            <div key={index} className="breakdown-item">
+                                                <span className="breakdown-model">{item.model}</span>
+                                                <span className="breakdown-value">{Math.round(item.value)} min</span>
+                                                <span className="breakdown-weight">Peso: {(item.weight * 100).toFixed(0)}%</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
 
                                 {/* Botón de Persistencia en Turso */}
                                 <button
