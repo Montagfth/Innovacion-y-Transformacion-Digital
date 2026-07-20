@@ -8,6 +8,8 @@ import { OrdersSection } from './components/OrdersSection';
 import { AnalyticsSection } from './components/AnalyticsSection';
 import { NewOrderSection } from './components/NewOrderSection.tsx';
 import { ReportsSection } from './components/ReportsSection.tsx';
+import { ModelEvaluationSection } from './components/ModelEvaluationSection.tsx';
+import { ProductionOptimizationSection } from './components/ProductionOptimizationSection.tsx';
 
 import './App.css'
 
@@ -29,6 +31,10 @@ function App() {
         <Route path="new-order" element={<NewOrderSection />} />
 
         <Route path="reports" element={<ReportsSection />} />
+        
+        {/* Nuevas secciones de ML */}
+        <Route path="model-evaluation" element={<ModelEvaluationSection />} />
+        <Route path="production-optimization" element={<ProductionOptimizationSection />} />
       </Route>
 
       <Route path="/prediction" element={<Prediction />} />
