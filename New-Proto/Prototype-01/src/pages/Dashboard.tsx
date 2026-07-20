@@ -17,7 +17,9 @@ export const Dashboard: React.FC = () => {
     const isOrdersActive = location.pathname.endsWith('/orders');
     const isNewOrderActive = location.pathname.endsWith('/new-order');
     const isReportsActive = location.pathname.endsWith('/reports');
-    const isAnalyticsActive = !isOrdersActive && !isNewOrderActive && !isReportsActive;
+    const isModelEvaluationActive = location.pathname.endsWith('/model-evaluation');
+    const isProductionOptimizationActive = location.pathname.endsWith('/production-optimization');
+    const isAnalyticsActive = !isOrdersActive && !isNewOrderActive && !isReportsActive && !isModelEvaluationActive && !isProductionOptimizationActive;
 
     const handleLogout = () => {
         navigate('/');
@@ -86,6 +88,18 @@ export const Dashboard: React.FC = () => {
                             >
                                 Reportes
                             </button>
+                            {/* <button
+                                className={`nav-btn ${isModelEvaluationActive ? 'active' : ''}`}
+                                onClick={() => navigate('/dashboard/model-evaluation')}
+                            >
+                                Evaluación ML
+                            </button> */}
+                            {/* <button
+                                className={`nav-btn ${isProductionOptimizationActive ? 'active' : ''}`}
+                                onClick={() => navigate('/dashboard/production-optimization')}
+                            >
+                                Optimización
+                            </button> */}
                         </div>
                     </div>
 

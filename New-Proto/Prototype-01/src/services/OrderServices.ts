@@ -22,7 +22,8 @@ export const getOrders = async (): Promise<OrderData[]> => {
             print_material, 
             colored, 
             estimated_time, 
-            status 
+            status,
+            priority
         FROM 
             orders`;
 
@@ -39,6 +40,7 @@ export const getOrders = async (): Promise<OrderData[]> => {
             is_colored: Number(row.colored) === 1,
             estimated_time: Number(row.estimated_time),
             status: (row.status as 'Pendiente' | 'Producción' | 'Completado') || 'Pendiente',
+            priority: Number(row.priority ?? 0),
         }));
 
         console.log("Ordenes mapeadas con exito:", orders);
