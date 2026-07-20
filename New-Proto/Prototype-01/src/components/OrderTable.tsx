@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { OrderData } from '../types/Order';
 
 interface OrdersTableProps {
@@ -23,7 +23,6 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders, loading, onAss
     const [currentPage, setCurrentPage] = useState<number>(1);
     const REGISTROS_POR_PAGINA = 25;
 
-    // Estado para registrar qué IDs de pedidos están en proceso de desvanecimiento para no duplicar llamadas
     const [exitingOrderIds, setExitingOrderIds] = useState<number[]>([]);
 
     const [maquinas, setMaquinas] = useState<Maquina[]>([
@@ -32,7 +31,6 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders, loading, onAss
         { id: 3, nombre: 'Impresora Láser Xerox', estado: 'Disponible' },
     ]);
 
-    // Intervalo para actualizar el contador de las máquinas y manejar la salida visual
     useEffect(() => {
         const interval = setInterval(() => {
             setMaquinas((prevMaquinas) =>
@@ -44,18 +42,15 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders, loading, onAss
                         if (tiempoRestante <= 0) {
                             const pid = maq.pedidoId;
                             if (pid) {
-                                // 1. Iniciamos la animación de desaparición de la fila agregando el ID a exitingOrderIds
                                 if (!exitingOrderIds.includes(pid)) {
                                     setExitingOrderIds(prev => [...prev, pid]);
 
-                                    // 2. Esperamos a que la animación de CSS (800ms) termine antes de completar el pedido en la base de datos
                                     setTimeout(() => {
                                         if (onCompleteOrder) {
                                             onCompleteOrder(pid).catch((err) =>
-                                                console.error(`Error al completar pedido #${pid} en Turso:`, err)
+                                                console.error(`Error al completar pedido #${pid}:`, err)
                                             );
                                         }
-                                        // Limpiamos el ID del estado de salida
                                         setExitingOrderIds(prev => prev.filter(id => id !== pid));
                                     }, 800);
                                 }
@@ -92,6 +87,11 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders, loading, onAss
 
         const jobTypeStr = String(order.job_type ?? (order as any).print_type ?? '');
         return jobTypeStr.toLowerCase().includes(searchTerm.toLowerCase()) || orderId.toString().includes(searchTerm);
+    }).sort((a, b) => {
+        // Los urgentes (priority=1) van primero
+        const prioA = Number(a.priority ?? 0);
+        const prioB = Number(b.priority ?? 0);
+        return prioB - prioA;
     });
 
     const totalPages = Math.ceil(filteredOrders.length / REGISTROS_POR_PAGINA);
@@ -121,11 +121,10 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders, loading, onAss
             setSelectedOrder(null);
         } catch (err) {
             console.error(err);
-            alert("Error al guardar la asignación en el servidor.");
+            alert("Error al guardar la asignación.");
         }
     };
 
-    // Helper para buscar si un pedido está asignado a alguna máquina y retornar los segundos restantes
     const obtenerDatosAsignacionPedido = (pedidoId: number) => {
         const maq = maquinas.find(m => m.pedidoId === pedidoId && m.estado === 'Ocupada');
         if (!maq || !maq.asignadoEn || !maq.tiempoEstimadoTotal) return null;
@@ -138,15 +137,6 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders, loading, onAss
     return (
         <div className="orders-section-wrapper">
             <div className="orders-table-container">
-                {/* <div className="table-header-actions">
-                    <h3>Historial de Pedidos Nuevos ({filteredOrders.length})</h3>
-                    <input
-                        type="text"
-                        placeholder="🔍 Buscar por Tipo o ID..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div> */}
                 <div className="table-header-actions">
                     <div className="header-title-area">
                         <h3>Historial de Pedidos Nuevos</h3>
@@ -163,13 +153,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders, loading, onAss
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                         {searchTerm && (
-                            <button
-                                className="search-clear-btn"
-                                onClick={() => setSearchTerm('')}
-                                title="Limpiar búsqueda"
-                            >
-                                ✕
-                            </button>
+                            <button className="search-clear-btn" onClick={() => setSearchTerm('')}>✕</button>
                         )}
                     </div>
                 </div>
@@ -179,6 +163,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders, loading, onAss
                         <thead>
                             <tr>
                                 <th>ID</th>
+                                <th>Prioridad</th>
                                 <th>Tipo de Trabajo</th>
                                 <th>Cantidad</th>
                                 <th>Tamaño</th>
@@ -193,17 +178,28 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders, loading, onAss
                                 const idMostrar = (order as any).order_id ?? order.id;
                                 const idNumerico = Number(idMostrar);
 
-                                // Verificamos si el pedido está siendo procesado por alguna máquina y cuánto tiempo le queda
                                 const tiempoRestante = obtenerDatosAsignacionPedido(idNumerico);
                                 const estaProcesando = tiempoRestante !== null;
                                 const estaSaliendo = exitingOrderIds.includes(idNumerico);
+                                const esUrgentePorEmpresa = Number(order.priority ?? 0) === 1;
 
                                 return (
                                     <tr
                                         key={idMostrar}
-                                        className={`${estaProcesando ? 'row-processing' : ''} ${estaSaliendo ? 'row-exiting' : ''}`}
+                                        className={`
+                                            ${estaProcesando ? 'row-processing' : ''} 
+                                            ${estaSaliendo ? 'row-exiting' : ''}
+                                            ${esUrgentePorEmpresa ? 'row-priority-urgent' : ''}
+                                        `}
                                     >
                                         <td>#{idMostrar}</td>
+                                        <td>
+                                            {esUrgentePorEmpresa ? (
+                                                <span className="badge-urgent-empresa">🏢 URGENTE</span>
+                                            ) : (
+                                                <span className="badge-priority-normal">Normal</span>
+                                            )}
+                                        </td>
                                         <td>{order.job_type ?? (order as any).print_type}</td>
                                         <td>{order.quantity}</td>
                                         <td><span className="badge-size">{order.size ?? (order as any).print_size}</span></td>
@@ -253,6 +249,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders, loading, onAss
                 <div className="modal-overlay" onClick={() => setSelectedOrder(null)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                         <h4>Asignar Pedido #{(selectedOrder as any).order_id ?? selectedOrder.id}</h4>
+
                         <p className="modal-subtitle">Selecciona una máquina del taller para iniciar la producción:</p>
 
                         <div className="maquinas-list">
